@@ -10,9 +10,9 @@ def wprint(s, fd=None, verbose=True):
 
 class Logger(object):
     def __init__(self, log_file, verbose=True):
-        #
+        #设置为控制台输出
         self.terminal = sys.stdout
-        #向日志文件中写入日志
+        #打开日志文件，设置状态为写入
         self.log = open(log_file, "w")
         #verbose是一种模式，代表详细输出
         self.verbose = verbose
@@ -20,12 +20,13 @@ class Logger(object):
         self.write("All outputs written to %s" % log_file)
         return 
 
+
     def write(self, message):
-        self.log.write(message + '\n')
-        if(self.verbose): self.terminal.write(message + '\n')
+        self.log.write(message + '\n') # 里面的write与外面的write不同，恰好同名
+        if(self.verbose): self.terminal.write(message + '\n')# 外面的write是对对象进行操作，里面的对属性进行操作
 
     def flush(self):
-        pass
+        pass #不执行任何操作，当作占位符，为了部分代码还没准备好但整体要正常运行的情况。
 
 # def reverse_identity(agent_type):
 #     assert agent_type in ["buyer", "seller", "moderator", "critic"]
@@ -33,14 +34,17 @@ class Logger(object):
 #     elif(agent_type == "seller"): return "buyer"
 #     else: return agent_type
 
+
 def check_price_range(price, p_min=8, p_max=20):
     """check if one price is in legal range
+        检查给定的价格在合法范围中
     """
     if(price > p_min and price < p_max): return True
     else: return False
 
 def check_k_price_range(prices, p_min=8, p_max=20):
     """check if all prices are in legal range
+        检查所有人给出的价格都在合法范围中
     """
     all_in_range = True
     for p in prices:
