@@ -1,6 +1,8 @@
 import sys
 import time
 
+
+#utils类：工具类，用于存放常用的工具函数
 def wprint(s, fd=None, verbose=True):
     if(fd is not None): fd.write(s + '\n')
     if(verbose): print(s)
@@ -8,8 +10,11 @@ def wprint(s, fd=None, verbose=True):
 
 class Logger(object):
     def __init__(self, log_file, verbose=True):
+        #
         self.terminal = sys.stdout
+        #向日志文件中写入日志
         self.log = open(log_file, "w")
+        #verbose是一种模式，代表详细输出
         self.verbose = verbose
 
         self.write("All outputs written to %s" % log_file)
