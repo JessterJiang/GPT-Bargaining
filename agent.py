@@ -302,7 +302,8 @@ class SellerAgent(DialogAgent):
                  seller_init_price=20,
                  item="balloon"
                 ):
-        """Initialize the seller agent"""
+        """Initialize the seller agent
+           调用父类Dialog的初始化函数"""
         super().__init__(initial_dialog_history=initial_dialog_history, 
                          agent_type=agent_type, 
                          engine=engine,

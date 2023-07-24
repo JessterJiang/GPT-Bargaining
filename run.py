@@ -20,7 +20,16 @@ HUMAN_CRITIC_PATH = "lib_prompt/human_feedback_seller.txt"
 
 import argparse
 
+
+
 def define_arguments():
+    """
+       利用argparse模块设定参数，用于解析命令行参数和生成用户友好的帮助文档。
+       创建ArgumentParser类的对象，定义命令行参数，确定类型和默认值
+       命令行参数通过命令行传递给程序，在程序运行之前配置程序，scanf更偏向简单的用户交互，需要等待输入
+       help 参数允许你为每个命令行参数添加描述性文本，以向用户提供关于如何使用该参数的说明。
+       当用户在命令行中使用 -h 或 --help 选项时，argparse 将显示包含每个参数帮助信息的帮助文档。
+    """
     parser = argparse.ArgumentParser()
 
     # seller arguments
@@ -77,6 +86,7 @@ def define_arguments():
                         help='version plus arguments')
 
     # parse and set arguments
+    # 解析参数，将它们转变为python中对应的数据类型，一起存储在args对象中
     args = parser.parse_args()
 
     openai.api_key = args.api_key
@@ -88,6 +98,10 @@ def get_engine_and_api_key(agent_type, engine_name, args):
     """Get engine for players and critic
     agent_type: [seller, buyer, seller_critic, buyer_critic, moderator]
     engine_name: [gpt-3.5-turbo, gpt-4, claude-v1.0, claude-v1.3, claude-instant-v1.0]
+
+    agent_type 代理的类别
+    engine_name 引擎的类别
+    engine_class 引擎需要调用的类
     """
     engine_map = {  "seller": SellerAgent, 
                     "buyer":  BuyerAgent, 
@@ -95,7 +109,7 @@ def get_engine_and_api_key(agent_type, engine_name, args):
                     "buyer_critic":  BuyerCriticAgent,
                     "moderator": ModeratorAgent
                   }
-
+    # 根据引擎类别设置api_key
     if("gpt" in engine_name): 
         api_key = args.api_key
     elif("claude" in engine_name): 
@@ -115,6 +129,8 @@ def get_engine_and_api_key(agent_type, engine_name, args):
 def run(buyer, seller, moderator, 
         n_round=10, who_is_first="seller", no_deal_thres=10):
     """Run single game.
+       no_deal_thres:通常表示 "no-deal threshold"（无交易阈值）
+       超过阈值则判定交易无法达成
     """
     
     if(who_is_first == "buyer"):
@@ -176,11 +192,15 @@ def run_compare_critic_single(buyer, seller, moderator, critic,
                        const_feedback, human_feedback_pool, 
                        game_type, n_round=10, who_is_first="seller"):
     """Run with multiple types of critic then compare the effect of different critics
+       仅运行两轮，第一轮不反馈，第二轮将进行人类反馈，ai反馈，默认反馈
+       将反馈之后得到的价格作对比
+       constant_feedback: Nice game. Let's play again. This time, can you do better than the previous round?
     """
     logger.write('==== RUN 1 ====')
     buyer.reset()
     seller.reset()
     moderator.reset()
+
     run_n_prices, run_n_prices_const, run_n_prices_human = [], [], [] 
 
     run_1_price = run(buyer, seller, moderator, n_round=n_round, who_is_first=who_is_first)
@@ -201,8 +221,11 @@ def run_compare_critic_single(buyer, seller, moderator, critic,
         moderator.reset()
 
         ai_feedback = critic.criticize(seller.dialog_history)
-        
         logger.write("AI FEEDBACK:\n%s\n" % ai_feedback)
+
+        """从这里可以看到，卖家的策略是根据ai反馈与之前的价格所共同决定的。
+           与论文中所说的 previous negotiation history and AI feedback 有所不同
+        """
         acknowledgement = seller.receive_feedback(ai_feedback, run_1_price)
         logger.write("ACK:\n%s\n\n" % acknowledgement)
         run_2_price = run(buyer, seller, moderator, n_round=n_round, who_is_first=who_is_first)
@@ -241,6 +264,7 @@ def run_compare_critic(args, buyer, seller, moderator, critic,
                             game_type,
                             n_exp=100, n_round=10, who_is_first="seller"):
     """run multiple experiments with multiple types of critic
+       运行多轮反馈
     """
     prices_ai_critic, prices_const_critic, prices_human_critic = [], [], []
 
@@ -289,6 +313,7 @@ def run_compare_critic(args, buyer, seller, moderator, critic,
 def run_simple(args, buyer, seller, moderator,
                 n_exp=100, n_round=10, who_is_first="seller"):
     """run multiple experiments without critic, simply checking if the model can play the game
+       运行多轮不进行反馈，用于检查模型是否能正常玩游戏
     """
     start_time = time.time()
     for i in range(n_exp):

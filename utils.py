@@ -53,43 +53,47 @@ def check_k_price_range(prices, p_min=8, p_max=20):
             break
     return all_in_range
 
+
+# parse：指的是对文本或数据进行解析
 def parse_outputs(filepath, price_per_case=4):
+    # 每个案列的价格数量为4
     prices = []
     lines = open(filepath).readlines()
     case_price = []
     for l in lines:
         if(l.startswith("==== CASE")):
             if(len(case_price) > 0): 
-                assert(len(case_price) == price_per_case)
+                assert(len(case_price) == price_per_case) #检测是不是四个一组
                 prices.append(case_price)
             case_price = []
         elif(l.startswith("PRICE: ")):
             price = float(l.split('PRICE: ')[1].strip())
             case_price.append(price)
-
+# PRICE后面没有CASE时，后面的自成一组
     if(len(case_price) > 0): 
         assert(len(case_price) == price_per_case)
         prices.append(case_price)
     return prices
 
-def parse_outputs_v2(filepath, price_per_case=4):
+# 与上面的代码功能基本相同，去掉了四个一组的限制，不太清楚price是怎么分析的
+def parse_outputs_v2(filepath):
     prices = []
     lines = open(filepath).readlines()
     case_price = []
     for l in lines:
         if(l.startswith("==== ver")):
-            if(len(case_price) > 0): 
-                # assert(len(case_price) == price_per_case)
+            if(len(case_price) > 0):
                 prices.append(case_price)
             case_price = []
         elif(l.startswith("PRICE: ")):
             price = float(l.split('PRICE: ')[1].strip())
             case_price.append(price)
 
-    if(len(case_price) > 0): 
-        # assert(len(case_price) == price_per_case)
+    if(len(case_price) > 0):
         prices.append(case_price)
     return prices
 
+
+# 计算运行时间，得到分钟数
 def compute_time(start_time):
     return (time.time() - start_time) / 60.0
