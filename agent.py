@@ -214,15 +214,17 @@ class DialogAgent(object):
         """
         # TODO: refactor the code, add `remember_history` flag
         #       if yes, then add the prompt to the dialog history, else not
+        # 待办：添加remember_history flag，用来判断是否将提示词加入对话历史
+        # 将prompt用字典存储，并导入进对话历史
         prompt = {"role": "user", "content": prompt}
         self.dialog_history.append(prompt)
         self.last_prompt = prompt['content']
-
+        # 用的是整个对话历史
         messages = list(self.dialog_history)
         # messages.append(prompt)
 
         message = self.call_engine(messages)
-
+        # 将call_engine返回的消息写入对话历史
         self.dialog_history.append(dict(message))
 
         # self.dialog_round += 1
@@ -405,6 +407,7 @@ class SellerAgent(DialogAgent):
 class ModeratorAgent(DialogAgent):
     """NOTE: initial experiments shows that the moderator is much better at recognizing deal than not deal
     Do not know why but interesting
+    相对于不成交更容易识别成交，不知道为什么
     """
 
     def __init__(self,

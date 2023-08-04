@@ -56,13 +56,13 @@ def define_arguments():
                         help="how long the moderator trace history")
 
     # api keys
-    parser.add_argument('--api_key', type=str, default=None, help='openai api key')
+    parser.add_argument('--api_key', type=str, default='sk-yDDej8nATX2j0MRWhdnyWNjotZ5NRqXny1jmKmsf2En244t2', help='openai api key')
     parser.add_argument('--anthropic_api_key', type=str, default=None, help='anthropic api key')
     parser.add_argument('--ai21_api_key', type=str, default=None, help='ai21 api key')
     parser.add_argument('--cohere_api_key', type=str, default=None, help='cohere api key')
 
     # game arguments
-    parser.add_argument('--game_type', type=str, default=None, 
+    parser.add_argument('--game_type', type=str, default=None,
                         help='[criticize_seller, criticize_buyer, seller_compare_feedback]')
     parser.add_argument('--n_exp', type=int, default=1, 
                         help='number of experiments')
@@ -103,6 +103,7 @@ def get_engine_and_api_key(agent_type, engine_name, args):
     engine_name 引擎的类别
     engine_class 引擎需要调用的类
     """
+    # 创建字典，将代理的类别与引擎需要调用的类对应
     engine_map = {  "seller": SellerAgent, 
                     "buyer":  BuyerAgent, 
                     "seller_critic": SellerCriticAgent, 
@@ -121,6 +122,7 @@ def get_engine_and_api_key(agent_type, engine_name, args):
     else: 
         raise ValueError("engine name %s not found" % engine_name)
 
+    # 将需要调用的类赋值给engine_class
     engine_class = engine_map[agent_type]
 
     return engine_class, api_key
@@ -134,6 +136,7 @@ def run(buyer, seller, moderator,
     """
     
     if(who_is_first == "buyer"):
+        #
         seller_run = seller.last_response
         buyer_run = buyer.call(seller_run)
 
@@ -145,6 +148,7 @@ def run(buyer, seller, moderator,
     start_involve_moderator = False
     deal_at = "none"
     no_deal_cnt = 0
+    # 这里的n_round是一轮中执行的回合数
     for _ in range(n_round):
         seller_run = seller.call(buyer_run)
         logger.write('  seller: %s' % seller.last_response)
@@ -196,6 +200,7 @@ def run_compare_critic_single(buyer, seller, moderator, critic,
        将反馈之后得到的价格作对比
        constant_feedback: Nice game. Let's play again. This time, can you do better than the previous round?
     """
+
     logger.write('==== RUN 1 ====')
     buyer.reset()
     seller.reset()
@@ -225,6 +230,7 @@ def run_compare_critic_single(buyer, seller, moderator, critic,
 
         """从这里可以看到，卖家的策略是根据ai反馈与之前的价格所共同决定的。
            与论文中所说的 previous negotiation history and AI feedback 有所不同
+           不同在于一个是谈判历史，一个是价格
         """
         acknowledgement = seller.receive_feedback(ai_feedback, run_1_price)
         logger.write("ACK:\n%s\n\n" % acknowledgement)
@@ -379,6 +385,7 @@ def run_with_critic(args, buyer, seller, moderator, critic, game_type,
                             n_exp=100, n_rollout=3, n_round=10, who_is_first="seller"):
     """run multiple experiments with one single critic
     """
+    # 价格存在列表中，多次回滚
     round_k_prices = {k: [] for k in range(n_rollout)}
 
     # for i in tqdm(range(n_exp)):
@@ -404,7 +411,7 @@ def run_with_critic(args, buyer, seller, moderator, critic, game_type,
             round_k_prices[k].append(float(round_prices[k]))
             logger.write("%.2f" % round_prices[k])
         logger.write("\n\n\n\n")
-
+    # 同一次实验中对
     for k in range(n_rollout):
         logger.write("Round %d price: %.2f std: %.2f" % (k+1, np.mean(round_k_prices[k]), np.std(round_k_prices[k])))
     logger.write("%d runs, %d effective" % (n_exp, len(round_k_prices[0])))
@@ -488,9 +495,13 @@ def main(args):
                             who_is_first=who_is_first)
     elif(args.game_type == "run_simple"):
         run_simple(args, buyer, seller, moderator, n_exp=args.n_exp)
-    return 
+    return
 
 if __name__ == "__main__":
+    openai.api_base = 'https://api.closeai-proxy.xyz/v1'
+    #运行前输入 -- 后面在下方help中选择
+    #help='[criticize_seller, criticize_buyer, seller_compare_feedback,run_simple]')
+
     args = define_arguments()
     logger = Logger(args.output_path + args.game_version + ".txt", args.verbose)
     main(args)

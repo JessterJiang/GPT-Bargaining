@@ -18,7 +18,8 @@ For the third retry, if there is a network error, wait for 5 seconds.
 """
 STOP_AFTER_ATTEMPT=4
 
-@retry(stop=stop_after_attempt(STOP_AFTER_ATTEMPT), 
+# 装饰器函数，用于实现重试机制，即运行completion_with_backoff时
+@retry(stop=stop_after_attempt(STOP_AFTER_ATTEMPT),
         wait=wait_chain(*[wait_fixed(3) for i in range(2)] +
                        [wait_fixed(5) for i in range(1)]))
 def completion_with_backoff(**kwargs):
@@ -55,6 +56,7 @@ By default we use OpenAI formated prompt, explained in
 https://github.com/openai/openai-python/blob/main/chatml.md
 
 Below are functions converting prompts to different formats.
+默认采用OpenAI的提示格式，下面的函数是将OpenAI的提示词格式转换为其他大模型的提示词格式
 """
 
 def convert_openai_to_anthropic_prompt(prompt):
