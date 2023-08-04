@@ -102,7 +102,7 @@ def parse_final_price(dialog_history):
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
-#
+# 对话代理类
 class DialogAgent(object):
     """GPT Agent base class, later derived to be a seller, buyer, critic, or moderator
 
